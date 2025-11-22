@@ -9,6 +9,105 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="img/tabhead2.png">
 
+    <!-- Carousel-specific styles (kept minimal and responsive) -->
+    <style>
+        :root { --header-height: 72px; }
+
+        /* Full-width carousel directly under fixed header */
+        .carousel {
+            position: relative;
+            width: 100%;
+            margin-top: var(--header-height);
+            overflow: hidden;
+            background: #000;
+        }
+
+        .carousel-track {
+            display: flex;
+            width: 100%;
+            transition: transform 0.6s ease;
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            flex: 0 0 100%;
+            display: block;
+            position: relative;
+            height: 600px; /* increased height */
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.45);
+            color: #fff;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+        }
+
+        .carousel-btn:hover {
+            background: rgba(0,0,0,0.6);
+        }
+
+        .carousel-btn.prev { left: 16px; }
+        .carousel-btn.next { right: 16px; }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+
+        .carousel-dots .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .carousel-dots .dot.active {
+            background: var(--primary-green, #FFD60A);
+            box-shadow: 0 0 0 3px rgba(255, 214, 10, 0.12);
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 1200px) {
+            .carousel-slide { height: 760px; } /* taller on very large screens */
+        }
+
+        @media (max-width: 768px) {
+            .carousel-slide { height: 420px; }
+            :root { --header-height: 64px; }
+        }
+
+        @media (max-width: 480px) {
+            .carousel-slide { height: 320px; }
+            .carousel-btn { width: 36px; height: 36px; }
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -27,6 +126,28 @@
             <div class="mobile-menu">☰</div>
         </div>
     </header>
+
+    <!-- Full-width Carousel (inserted below navigation bar) -->
+    <div class="carousel" role="region" aria-label="X-ENERGI image carousel">
+        <div class="carousel-track">
+            <div class="carousel-slide"><img src="img/pic18.jpg" alt="X-ENERGI Electric Motorcycle"></div>
+            <div class="carousel-slide"><img src="img/pic15.jpg" alt="Electric Motorcycle"></div>
+            <div class="carousel-slide"><img src="img/pic3.jpg" alt="Battery Swap Station"></div>
+            <div class="carousel-slide"><img src="img/pic17.jpg" alt="Delivery Rider"></div>
+            <div class="carousel-slide"><img src="img/pic20.jpg" alt="Solar Charging"></div>
+            <div class="carousel-slide"><img src="img/pic7.jpg" alt="Operations"></div>
+            <div class="carousel-slide"><img src="img/pic16.jpg" alt="Future Expansion"></div>
+        </div>
+
+        <button class="carousel-btn prev" aria-label="Previous slide">
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button class="carousel-btn next" aria-label="Next slide">
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </button>
+
+        <div class="carousel-dots" aria-hidden="false"></div>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -120,7 +241,7 @@
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <img src="img/pic2.jpg" alt="Battery Swap Station">
+                    <img src="img/pic15.jpg" alt="Battery Swap Station">
                     <div class="gallery-overlay">
                         <p>X-ENERGI rider with bt </p>
                     </div>
@@ -348,6 +469,81 @@
                     const mailUrl = `mailto:${mailTo}?subject=${subject}&body=` + encodeURIComponent(bodyText);
                     window.location.href = mailUrl;
                 }
+            });
+        })();
+
+        // Carousel functionality
+        (function() {
+            const track = document.querySelector('.carousel-track');
+            if (!track) return;
+
+            const slides = Array.from(track.children);
+            const prevBtn = document.querySelector('.carousel-btn.prev');
+            const nextBtn = document.querySelector('.carousel-btn.next');
+            const dotsNav = document.querySelector('.carousel-dots');
+            const carousel = document.querySelector('.carousel');
+
+            // Create dots
+            slides.forEach((_, idx) => {
+                const dot = document.createElement('button');
+                dot.className = 'dot';
+                dot.setAttribute('aria-label', 'Go to slide ' + (idx + 1));
+                if (idx === 0) dot.classList.add('active');
+                dotsNav.appendChild(dot);
+                dot.addEventListener('click', () => goToSlide(idx));
+            });
+
+            let currentIndex = 0;
+            const total = slides.length;
+
+            function goToSlide(index) {
+                if (index < 0) index = total - 1;
+                if (index >= total) index = 0;
+                track.style.transform = `translateX(-${index * 100}%)`;
+                const dots = dotsNav.querySelectorAll('.dot');
+                dots.forEach((d, i) => d.classList.toggle('active', i === index));
+                currentIndex = index;
+            }
+
+            nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
+            prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
+
+            // Autoplay with pause on hover
+            let autoplay = setInterval(() => goToSlide(currentIndex + 1), 4000);
+            carousel.addEventListener('mouseenter', () => clearInterval(autoplay));
+            carousel.addEventListener('mouseleave', () => {
+                clearInterval(autoplay);
+                autoplay = setInterval(() => goToSlide(currentIndex + 1), 4000);
+            });
+
+            // Handle swipe on touch devices
+            let startX = 0;
+            let isTouch = false;
+            track.addEventListener('touchstart', (e) => {
+                isTouch = true;
+                startX = e.touches[0].clientX;
+            }, { passive: true });
+
+            track.addEventListener('touchend', (e) => {
+                if (!isTouch) return;
+                const endX = (e.changedTouches && e.changedTouches[0].clientX) || 0;
+                const diff = startX - endX;
+                if (Math.abs(diff) > 40) {
+                    if (diff > 0) goToSlide(currentIndex + 1);
+                    else goToSlide(currentIndex - 1);
+                }
+                isTouch = false;
+            });
+
+            // Ensure correct slide on window resize (keeps transform values consistent)
+            window.addEventListener('resize', () => {
+                // Force re-apply transform for current index
+                track.style.transition = 'none';
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                // Allow transition again
+                requestAnimationFrame(() => {
+                    track.style.transition = '';
+                });
             });
         })();
     </script>
