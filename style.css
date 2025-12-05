@@ -232,7 +232,7 @@ nav {
     align-items: center;
     position: relative;
     background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('./public/images/index-bg.jpeg');
-    /* Placeholder Hero Image */
+    /* Add ./ before the path */
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
